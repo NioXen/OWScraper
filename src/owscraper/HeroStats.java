@@ -5,6 +5,8 @@
  */
 package owscraper;
 
+import java.math.BigDecimal;
+
 /**
  * HeroStats holds basic stats for each hero
  * @author Ben
@@ -16,16 +18,21 @@ public class HeroStats {
     private int gamesWon;
     private int winPercentage;
     private int weaponAccuracy;
-    private float eliminationsPerLife;
+    private BigDecimal eliminationsPerLife;
     private int multiKillBest;
-    private float objectiveKills;
+    private BigDecimal objectiveKills;
+
+    @Override
+    public String toString() {
+        return "HeroStats{" + "timePlayed=" + timePlayed + ", timePlayedInSeconds=" + timePlayedInSeconds + ", gamesWon=" + gamesWon + ", winPercentage=" + winPercentage + ", weaponAccuracy=" + weaponAccuracy + ", eliminationsPerLife=" + eliminationsPerLife + ", multiKillBest=" + multiKillBest + ", objectiveKills=" + objectiveKills + '}';
+    }
 
     /**
      * Get the value of objectiveKills
      *
      * @return the value of objectiveKills
      */
-    public float getObjectiveKills() {
+    public BigDecimal getObjectiveKills() {
         return objectiveKills;
     }
 
@@ -34,7 +41,7 @@ public class HeroStats {
      *
      * @param objectiveKills new value of objectiveKills
      */
-    public void setObjectiveKills(float objectiveKills) {
+    public void setObjectiveKills(BigDecimal objectiveKills) {
         this.objectiveKills = objectiveKills;
     }
 
@@ -62,7 +69,7 @@ public class HeroStats {
      *
      * @return the value of eliminationsPerLife
      */
-    public float getEliminationsPerLife() {
+    public BigDecimal getEliminationsPerLife() {
         return eliminationsPerLife;
     }
 
@@ -71,7 +78,7 @@ public class HeroStats {
      *
      * @param eliminationsPerLife new value of eliminationsPerLife
      */
-    public void setEliminationsPerLife(float eliminationsPerLife) {
+    public void setEliminationsPerLife(BigDecimal eliminationsPerLife) {
         this.eliminationsPerLife = eliminationsPerLife;
     }
 
