@@ -36,11 +36,41 @@ public class OWScraper {
         }
     }
     
+    //make fed from player path url
+    private static PlayerStats playerStats(Document doc) {
+        PlayerStats ps;
+        ps = parsePlayerInfo(doc.select("div.masthead").first());
+        
+        return ps;
+    }
+    
+    private static PlayerStats parsePlayerInfo(Element hdr){
+        PlayerStats ps = new PlayerStats();
+        
+        ps.setIcon(hdr.selectFirst("img.player-portrait").attr("src"));
+        ps.setName(hdr.selectFirst("h1.header-masthead").text());
+        ps.setLevel(Integer.parseInt(hdr.selectFirst("div.player-level div.u-vertical-center").text()));
+        
+        String lvlIcon = hdr.selectFirst("div.player-level").attr("style");
+        ps.setLevelIcon(lvlIcon.substring(lvlIcon.indexOf("("), lvlIcon.indexOf(")")));
+        
+        ps.setPrestige(getPrestigeByIcon(ps.LevelIcon));
+        
+        
+        return ps;
+    }
+    
+    
+    /**
+     *
+     * @param args
+     */
     private static HashMap<String, HeroStats> parseHeroStats(Element heroElement) {
         HashMap<String, HeroStats> herosStats = new HashMap<>();
         Elements progressCategories = heroElement.select("div.progress-category");
         progressCategories.forEach((Element category) -> {
-            String categoryID = category.attr("data-category-id");
+            String categoryID;
+            categoryID = category.attr("data-category-id");
             categoryID = categoryID.replace("overwatch.guid.0x0860000000000", "");
             Elements stats = category.select("div.progress-2");
             for(Element stat : stats){
@@ -135,16 +165,22 @@ public class OWScraper {
         return herosStats;
     }
 
+    /**
+     *
+     * @param args
+     */
     public static void main(String[] args) {
-        Document doc = loadFile();
-        Element gameMode = doc.getElementById("competitive");
-        Element heroStats = gameMode.selectFirst("section.hero-comparison-section");
-        HashMap<String, HeroStats>hshm = parseHeroStats(heroStats);
-        for(Map.Entry<String, HeroStats> entry: hshm.entrySet()){
-            String key = entry.getKey();
-            HeroStats val = entry.getValue();
-            System.out.println(key + "," + val.toString());
-        }
+//        Document doc = loadFile();
+//        Element gameMode = doc.getElementById("competitive");
+//        Element heroStats = gameMode.selectFirst("section.hero-comparison-section");
+//        HashMap<String, HeroStats>hshm = parseHeroStats(heroStats);
+//        for(Map.Entry<String, HeroStats> entry: hshm.entrySet()){
+//            String key = entry.getKey();
+//            HeroStats val = entry.getValue();
+//            System.out.println(key + "," + val.toString());
+//        }
+        testClass test = new testClass();
+        System.out.println(test.output);
     }
     
 }

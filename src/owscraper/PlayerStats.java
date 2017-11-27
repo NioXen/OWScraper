@@ -20,6 +20,45 @@ public class PlayerStats {
     private int rating;
     private String ratingIcon;
     private int gamesWon;
+    private StatsCollection quickPlayStats;
+    private StatsCollection competitiveStats;
+
+    /**
+     * Get the value of competitiveStats
+     *
+     * @return the value of competitiveStats
+     */
+    public StatsCollection getCompetitiveStats() {
+        return competitiveStats;
+    }
+
+    /**
+     * Set the value of competitiveStats
+     *
+     * @param competitiveStats new value of competitiveStats
+     */
+    public void setCompetitiveStats(StatsCollection competitiveStats) {
+        this.competitiveStats = competitiveStats;
+    }
+
+
+    /**
+     * Get the value of quickPlayStats
+     *
+     * @return the value of quickPlayStats
+     */
+    public StatsCollection getQuickPlayStats() {
+        return quickPlayStats;
+    }
+
+    /**
+     * Set the value of quickPlayStats
+     *
+     * @param quickPlayStats new value of quickPlayStats
+     */
+    public void setQuickPlayStats(StatsCollection quickPlayStats) {
+        this.quickPlayStats = quickPlayStats;
+    }
 
 
     /**

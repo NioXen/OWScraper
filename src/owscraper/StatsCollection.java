@@ -13,8 +13,27 @@ import java.util.HashMap;
  */
 public class StatsCollection {
     
-    private HashMap<String, owscraper.HeroStats> herosStats;
-    //private HashMap<String, CareerStats> careerStats;
+    private HashMap<String, HeroStats> herosStats;
+    private HashMap<String, CareerStats> careerStats;
+
+    /**
+     * Get the value of careerStats
+     *
+     * @return the value of careerStats
+     */
+    public HashMap<String, CareerStats> getCareerStats() {
+        return careerStats;
+    }
+
+    /**
+     * Set the value of careerStats
+     *
+     * @param careerStats new value of careerStats
+     */
+    public void setCareerStats(HashMap<String, CareerStats> careerStats) {
+        this.careerStats = careerStats;
+    }
+
 
     public HashMap<String, HeroStats> getHerosStats() {
         return herosStats;
