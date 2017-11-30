@@ -6,20 +6,23 @@
 package owscraper;
 
 import org.jsoup.*;
-import org.jsoup.helper.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 import java.io.IOException;
 import java.io.File;
 import java.util.HashMap;
 import java.math.BigDecimal;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
  * @author Ben
  */
 public class OWScraper {
+    
+    private static final HashMap<String, String> RANK_MAP = HashMapReader.ReadFile("resources/rankMapping.txt", ":");
 
     private static Document loadFile() { 
         File input = new File("C:\\Users\\Ben\\Desktop\\owstats.html");
@@ -40,8 +43,15 @@ public class OWScraper {
     private static PlayerStats playerStats(Document doc) {
         PlayerStats ps;
         ps = parsePlayerInfo(doc.select("div.masthead").first());
+        ps.setCompetitiveStats(parseDetailedStats(doc.selectFirst("div#competitive")));
+        ps.setQuickPlayStats(parseDetailedStats(doc.selectFirst("div#quickplay")));
         
         return ps;
+    }
+    
+    private static StatsCollection parseDetailedStats(Element playMode){
+        StatsCollection stats = new StatsCollection();
+        stats.setHerosStats(parseHeroStats(playMode.selectFirst("section.hero-comparison-section")));
     }
     
     private static PlayerStats parsePlayerInfo(Element hdr){
@@ -54,13 +64,18 @@ public class OWScraper {
         String lvlIcon = hdr.selectFirst("div.player-level").attr("style");
         ps.setLevelIcon(lvlIcon.substring(lvlIcon.indexOf("("), lvlIcon.indexOf(")")));
         
-        ps.setPrestige(getPrestigeByIcon(ps.LevelIcon));
+        ps.setPrestige(getPrestigeByIcon(ps.getLevelIcon()));
         
+        String prestigeIcon = hdr.selectFirst("div.player-rank").attr("style");
+        ps.setPrestigeIcon(prestigeIcon.substring(prestigeIcon.indexOf("("), prestigeIcon.indexOf(")")));
+        
+        ps.setRating(Integer.parseInt(hdr.selectFirst("div.competitive-rank div.u-align-center").text()));
+        ps.setRatingIcon(hdr.selectFirst("div.competitive-rank img").attr("src"));
+        ps.setGamesWon(Integer.parseInt(hdr.selectFirst("div.masthead p.masthead-detail.h4 span").text().replace(" games won", "")));
         
         return ps;
     }
-    
-    
+        
     /**
      *
      * @param args
@@ -164,6 +179,19 @@ public class OWScraper {
         
         return herosStats;
     }
+    
+    private static HashMap<String, CareerStats> parseCareerStats(Element careerElement){
+        HashMap<String, CareerStats> careerStats = new HashMap<>();
+        HashMap<String, String> heroMapping = new HashMap<>();
+        
+        //Creates the hero mappings from the dropdown selector
+        careerElement.select("select option").forEach((Element heroOption) -> {
+        String heroValue = heroOption.attr("value");
+            heroMapping.put(heroValue, heroOption.text());
+        });
+        
+        careerElement.select("")
+    }
 
     /**
      *
@@ -179,8 +207,18 @@ public class OWScraper {
 //            HeroStats val = entry.getValue();
 //            System.out.println(key + "," + val.toString());
 //        }
-        testClass test = new testClass();
-        System.out.println(test.output);
     }
     
+    private static int getPrestigeByIcon(String levelIcon){
+        Pattern p = Pattern.compile("(.{3})(?=_Border.png)");
+        Matcher m = p.matcher(levelIcon);
+        if(m.find() && RANK_MAP != null){
+            String s = m.group();
+            return Integer.parseInt(RANK_MAP.get(s));
+        } else {
+            System.out.println("Could not get prestige by icon. Default 0 set");
+            return 0;
+        }
+    }
+
 }
