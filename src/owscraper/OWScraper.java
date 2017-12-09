@@ -5,6 +5,8 @@
  */
 package owscraper;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
@@ -12,20 +14,20 @@ import java.io.IOException;
 import java.io.File;
 import java.util.HashMap;
 import java.math.BigDecimal;
-import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author Ben
- */
 public class OWScraper {
     
-    private static final HashMap<String, String> RANK_MAP = HashMapReader.ReadFile("resources/rankMapping.txt", ":");
+    private static final HashMap<String, String> RANK_MAP = HashMapReader.ReadFile("resources/rankMapping.txt", ":"); 
 
     private static Document loadFile() { 
-        File input = new File("C:\\Users\\Ben\\Desktop\\owstats.html");
+        File input = new File("resources/owstats.html");
         Document doc = null;
         try {
         doc = Jsoup.parse(input, "UTF-8", "https://playoverwatch.com/");
@@ -42,16 +44,17 @@ public class OWScraper {
     //make fed from player path url
     private static PlayerStats playerStats(Document doc) {
         PlayerStats ps;
-        ps = parsePlayerInfo(doc.select("div.masthead").first());
+        ps = parsePlayerInfo(doc.selectFirst("div.masthead"));
         ps.setCompetitiveStats(parseDetailedStats(doc.selectFirst("div#competitive")));
         ps.setQuickPlayStats(parseDetailedStats(doc.selectFirst("div#quickplay")));
-        
         return ps;
     }
     
     private static StatsCollection parseDetailedStats(Element playMode){
         StatsCollection stats = new StatsCollection();
         stats.setHerosStats(parseHeroStats(playMode.selectFirst("section.hero-comparison-section")));
+        stats.setCareerStats(parseCareerStats(playMode.selectFirst("section.career-stats-section")));
+        return stats;
     }
     
     private static PlayerStats parsePlayerInfo(Element hdr){
@@ -76,10 +79,6 @@ public class OWScraper {
         return ps;
     }
         
-    /**
-     *
-     * @param args
-     */
     private static HashMap<String, HeroStats> parseHeroStats(Element heroElement) {
         HashMap<String, HeroStats> herosStats = new HashMap<>();
         Elements progressCategories = heroElement.select("div.progress-category");
@@ -179,34 +178,59 @@ public class OWScraper {
         
         return herosStats;
     }
-    
+        
     private static HashMap<String, CareerStats> parseCareerStats(Element careerElement){
-        HashMap<String, CareerStats> careerStats = new HashMap<>();
+        HashMap<String, CareerStats> careerStatsMap = new HashMap<>();
         HashMap<String, String> heroMapping = new HashMap<>();
         
-        //Creates the hero mappings from the dropdown selector
         careerElement.select("select option").forEach((Element heroOption) -> {
-        String heroValue = heroOption.attr("value");
-            heroMapping.put(heroValue, heroOption.text());
+            String heroCode = heroOption.attr("value");
+            String heroName = heroOption.attr("option-id");
+            heroMapping.put(heroCode, heroName);
         });
         
-        careerElement.select("")
-    }
-
-    /**
-     *
-     * @param args
-     */
-    public static void main(String[] args) {
-//        Document doc = loadFile();
-//        Element gameMode = doc.getElementById("competitive");
-//        Element heroStats = gameMode.selectFirst("section.hero-comparison-section");
-//        HashMap<String, HeroStats>hshm = parseHeroStats(heroStats);
-//        for(Map.Entry<String, HeroStats> entry: hshm.entrySet()){
-//            String key = entry.getKey();
-//            HeroStats val = entry.getValue();
-//            System.out.println(key + "," + val.toString());
-//        }
+        //This css selector is pretty messy... I'm sure there's a better way to identify these stat blocks
+        Elements statPages = careerElement.select("[data-group-id=stats]:not(.dropdown-select-element)");
+        statPages.forEach((Element statPage) -> {
+            String heroCode = statPage.attr("data-category-id");
+            String heroName = heroMapping.get(heroCode);
+            CareerStats careerStats = new CareerStats();
+            careerStats.setHeroname(heroName);
+            
+            Elements statCards = statPage.select("div.card-stat-block");
+            statCards.forEach((Element statCard) -> {
+                String cardTitle = cleanString(statCard.selectFirst("h5.stat-title").text());
+                HashMap<String, String> cardMap = new HashMap<>();
+                
+                Elements tableRows = statCard.select("tbody > tr");
+                tableRows.forEach((Element tableRow) -> {
+                    List<String> tableEntries = tableRow.getElementsByTag("td").eachText();
+                    cardMap.put(tableEntries.get(0), tableEntries.get(1));
+                });
+                switch(cardTitle) {
+                    case "combat": careerStats.setCombat(cardMap);
+                    break;
+                    case "assists": careerStats.setAssists(cardMap);
+                    break;
+                    case "best": careerStats.setBest(cardMap);
+                    break;
+                    case "average": careerStats.setAverage(cardMap);
+                    break;
+                    case "matchawards": careerStats.setAwards(cardMap);
+                    break;
+                    case "game": careerStats.setGame(cardMap);
+                    break;
+                    case "miscellaneous": careerStats.setMisc(cardMap);
+                    break;
+                    case "herospecific": careerStats.setSpecific(cardMap);
+                    break;
+                    default: System.out.print("Unable to map card: " + cardTitle + " to any mapped career stats value. Moving to next card");
+                    break;
+                }
+            });
+            careerStatsMap.put(heroName, careerStats);
+        });
+        return careerStatsMap;
     }
     
     private static int getPrestigeByIcon(String levelIcon){
@@ -220,5 +244,30 @@ public class OWScraper {
             return 0;
         }
     }
-
+    
+    /*
+    Could make this more comprehensive? Escape special characters etc, but I think this regex should suffice?
+    */
+    private static String cleanString(String string){
+        String str = string.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        return str;
+    };
+    
+    /**
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        Document doc = loadFile();
+        PlayerStats ps = playerStats(doc);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(Include.NON_NULL);
+        ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
+        try {
+            writer.writeValue(new File("resources/stat.json"), ps);
+        } catch (IOException ex) {
+            Logger.getLogger(OWScraper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
 }

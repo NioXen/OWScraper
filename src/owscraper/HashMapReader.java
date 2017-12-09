@@ -10,10 +10,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 
-/**
- *
- * @author Ben
- */
 public class HashMapReader {
     public static HashMap<String, String> ReadFile(String filePath, String delimiter){
         String line;

@@ -5,8 +5,6 @@
  */
 package owscraper;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 
 /**
@@ -16,15 +14,14 @@ import java.util.HashMap;
 public class CareerStats {
     
     private String heroname;
-    private HashMap<String, String> assists = new HashMap<>();
-    private HashMap<String, String> misc = new HashMap<>();
-    private HashMap<String, String> game = new HashMap<>();
-    private HashMap<String, String> combat = new HashMap<>();
-    private HashMap<String, String> average = new HashMap<>();
-    private HashMap<String, String> deaths = new HashMap<>();
-    private HashMap<String, String> best = new HashMap<>();
-    private HashMap<String, String> awards = new HashMap<>();
-    private HashMap<String, String> specific = new HashMap<>();
+    private HashMap<String, String> assists;
+    private HashMap<String, String> misc;
+    private HashMap<String, String> game;
+    private HashMap<String, String> combat;
+    private HashMap<String, String> average;
+    private HashMap<String, String> best;
+    private HashMap<String, String> awards;
+    private HashMap<String, String> specific;
     
     public String getHeroname() {
         return heroname;
@@ -62,12 +59,7 @@ public class CareerStats {
     public void setAverage(HashMap<String, String> average) {
         this.average = average;
     }
-    public HashMap<String, String> getDeaths() {
-        return deaths;
-    }   
-    public void setDeaths(HashMap<String, String> deaths) {
-        this.deaths = deaths;
-    }
+    
     public HashMap<String, String> getBest() {
         return best;
     }   
@@ -89,7 +81,7 @@ public class CareerStats {
 
     @Override
     public String toString() {
-        return "heroStats{" + "heroname=" + heroname + ", assists=" + assists + ", misc=" + misc + ", game=" + game + ", combat=" + combat + ", average=" + average + ", deaths=" + deaths + ", best=" + best + ", awards=" + awards + ", specific=" + specific + '}';
+        return "heroStats{" + "heroname=" + heroname + ", assists=" + assists + ", misc=" + misc + ", game=" + game + ", combat=" + combat + ", average=" + average + ", best=" + best + ", awards=" + awards + ", specific=" + specific + '}';
     }
     
 }
